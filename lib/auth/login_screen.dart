@@ -1,7 +1,7 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_todo_firebase/auth/register_screen.dart';
+import 'package:flutter_todo_firebase/auth/forgot_password_screen.dart'; // Import halaman lupa password
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -11,121 +11,244 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  // Text Editing Untuk Form Input
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
-
-  // Untuk Mengisi Text di Form Input
   String message = '';
-
-  // Untuk Show/Hide Password
   bool pass = true;
+  bool _isLoading = false;
 
-  // 
   Future<void> login() async {
+    setState(() {
+      _isLoading = true;
+      message = '';
+    });
+
     try {
       await FirebaseAuth.instance.signInWithEmailAndPassword(
-        // Untuk Menghapus Spasi Di Belakang / Di Depan (Trim)
         email: emailController.text.trim(),
         password: passwordController.text.trim(),
       );
-      // Notifikasi Berhasil Login
+    } on FirebaseAuthException catch (e) {
       setState(() {
-        message = 'berhasil login';
+        if (e.code == 'user-not-found' || e.code == 'wrong-password') {
+          message = 'Email atau password salah.';
+        } else {
+          message = 'Terjadi kesalahan: ${e.message}';
+        }
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.green),
-      );
-      // Notifikasi Eror
     } catch (e) {
       setState(() {
-        message = 'error $e';
+        message = 'Terjadi kesalahan: $e';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
       });
     }
   }
 
   @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Card(
-          child: Padding(
-            padding: EdgeInsetsGeometry.all(10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(message),
-                Text('Halaman Login'),
-                TextField(
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    hintText: 'Masukkan Email',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+      backgroundColor: Colors.black,
+      body: Container(
+        // --- Latar Belakang Gradien ---
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFE0E7FF), // Biru sangat muda
+              Color(0xFFF0F2F5), // Abu-abu muda
+            ],
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 24.0,
+              vertical: 40.0,
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(10.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(
+                  30.0,
+                ), // Sudut lebih membulat
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // --- Ilustrasi Login --s-
+                  Image.asset(
+                    'assets/images/login_illustration.png',
+                    height: 150,
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Sign In',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   ),
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  controller: passwordController,
-                  obscureText: pass,
-                  decoration: InputDecoration(
-                    suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          pass = !pass;
-                        });
-                      },
-                      icon: pass
-                          ? Icon(Icons.visibility)
-                          : Icon(Icons.visibility_off),
-                    ),
-                    labelText: 'Password',
-                    hintText: 'Masukkan Password',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                  Text(
+                    'Enter valid user name & password to continue',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                   ),
-                ),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  const SizedBox(height: 32),
+
+                  if (message.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Text(
+                        message,
+                        style: TextStyle(
+                          color: Theme.of(context).colorScheme.error,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
-                    onPressed: () {
-                      login();
-                    },
-                    child: Text(
-                      'Submit',
-                      style: TextStyle(color: Colors.white),
+
+                  TextField(
+                    controller: emailController,
+                    decoration: const InputDecoration(
+                      labelText: 'Username', // Atau 'Email'
+                      hintText: 'Enter your username or email',
+                      prefixIcon: Icon(Icons.person_outline),
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: passwordController,
+                    obscureText: pass,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      hintText: 'Enter your password',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            pass = !pass;
+                          });
+                        },
+                        icon: Icon(
+                          pass ? Icons.visibility_off : Icons.visibility,
+                        ),
+                      ),
                     ),
                   ),
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Belum Punya Akun?'),
-                    TextButton(
+                  const SizedBox(height: 12),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => RegisterScreen(),
+                            builder: (context) => const ForgotPasswordScreen(),
                           ),
                         );
                       },
-                      child: Text('Register'),
+                      child: const Text('Forgot password?'),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ElevatedButton(
+                          onPressed: login,
+                          child: const Text('Login'),
+                        ),
+                  const SizedBox(height: 24),
+
+                  const Text(
+                    'Or Continue with',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  const SizedBox(height: 16),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _buildSocialButton(
+                        'assets/images/google_logo.png',
+                        'Google',
+                        () {
+                          // Handle Google Login
+                        },
+                      ),
+                      const SizedBox(width: 16),
+                      _buildSocialButton(
+                        'assets/images/facebook_logo.png',
+                        'Facebook',
+                        () {
+                          // Handle Facebook Login
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Haven\'t any account?'),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const RegisterScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text('Sign up'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
+        ),
+      ),
+    );
+  }
+
+  // --- Widget untuk tombol social media ---
+  Widget _buildSocialButton(
+    String iconPath,
+    String label,
+    VoidCallback onPressed,
+  ) {
+    return Expanded(
+      child: OutlinedButton.icon(
+        icon: Image.asset(iconPath, height: 24),
+        label: Text(label),
+        onPressed: onPressed,
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          side: BorderSide(color: Colors.grey.shade300),
+          foregroundColor: Colors.black87,
         ),
       ),
     );

@@ -1,8 +1,5 @@
-import 'dart:math';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_todo_firebase/auth/login_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -12,134 +9,231 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-
-  // Text Editing Untuk Form Input
   TextEditingController emailController = TextEditingController();
   TextEditingController passwordController = TextEditingController();
   TextEditingController usernameController = TextEditingController();
   String message = '';
   bool pass = true;
+  bool _isLoading = false;
 
   Future<void> register() async {
+    setState(() {
+      _isLoading = true;
+      message = '';
+    });
+
     try {
-      // Untuk Membuat Username
-      UserCredential username = await FirebaseAuth.instance
+      UserCredential userCredential = await FirebaseAuth.instance
           .createUserWithEmailAndPassword(
             email: emailController.text.trim(),
             password: passwordController.text.trim(),
           );
 
-      await username.user!.updateDisplayName(usernameController.text.trim());
-      await username.user!.reload();
+      await userCredential.user!.updateDisplayName(
+        usernameController.text.trim(),
+      );
+      await userCredential.user!.reload();
 
       setState(() {
-        message = 'Berhasil Register sebagai ${usernameController.text}';
+        message = 'Berhasil Register sebagai ${usernameController.text}!';
       });
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(message), backgroundColor: Colors.green),
       );
-      emailController.clear();
-      passwordController.clear();
+
+      if (mounted) {
+        Navigator.pop(context);
+      }
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        if (e.code == 'weak-password') {
+          message = 'Password terlalu lemah.';
+        } else if (e.code == 'email-already-in-use') {
+          message = 'Email sudah terdaftar.';
+        } else {
+          message = 'Terjadi kesalahan: ${e.message}';
+        }
+      });
     } catch (e) {
       setState(() {
-        message = 'error $e';
+        message = 'Terjadi kesalahan: $e';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
       });
     }
   }
 
   @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    usernameController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Card(
-          child: Padding(
-            padding: EdgeInsetsGeometry.all(10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(message),
-                Text('Halaman Register'),
-                TextField(
-                  controller: usernameController,
-                  decoration: InputDecoration(
-                    labelText: 'Username',
-                    hintText: 'Masukkan Username',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+      backgroundColor: Colors.white,
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFFE0E7FF),
+              Color(0xFFF0F2F5),
+            ],
+          ),
+        ),
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(
+              horizontal: 10.0,
+              vertical: 20.0,
+            ),
+            child: Container(
+              padding: const EdgeInsets.all(28.0),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30.0),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // --- Ilustrasi Register ---
+                  Image.asset(
+                    'assets/images/register_illustration.png', // Ganti dengan path ilustrasi Anda
+                    height: 150,
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    'Sign Up',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
                     ),
                   ),
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  controller: emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    hintText: 'Masukkan Email',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
+                  Text(
+                    'Use proper information to continue',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodyMedium?.copyWith(color: Colors.grey[600]),
                   ),
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  obscureText: pass,
-                  controller: passwordController,
-                  decoration: InputDecoration(
-                    suffixIcon: IconButton(
-                      onPressed: () {
-                        setState(() {
-                          pass = !pass;
-                        });
-                      },
-                      icon: Icon(
-                        pass
-                            ? Icons.visibility_off_outlined
-                            : Icons.visibility_outlined,
+                  const SizedBox(height: 32),
+
+                  if (message.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Text(
+                        message,
+                        style: TextStyle(
+                          color: message.startsWith('Berhasil')
+                              ? Colors.green
+                              : Theme.of(context).colorScheme.error,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
-                    labelText: 'Password',
-                    hintText: 'Masukkan Password',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
+
+                  TextField(
+                    controller: usernameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Full Name',
+                      hintText: 'Enter your full name',
+                      prefixIcon: Icon(Icons.person_outline),
                     ),
                   ),
-                ),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.green,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: emailController,
+                    decoration: const InputDecoration(
+                      labelText: 'Email address',
+                      hintText: 'Enter your email address',
+                      prefixIcon: Icon(Icons.email_outlined),
+                    ),
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    obscureText: pass,
+                    controller: passwordController,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      hintText: 'Create a password',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        onPressed: () {
+                          setState(() {
+                            pass = !pass;
+                          });
+                        },
+                        icon: Icon(
+                          pass ? Icons.visibility_off : Icons.visibility,
+                        ),
                       ),
                     ),
-                    onPressed: () {
-                      register();
-                    },
-                    child: Text(
-                      'Submit',
-                      style: TextStyle(color: Colors.white),
-                    ),
                   ),
-                ),
-                Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text('Sudah Punya Akun?'),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => LoginScreen(),
+                  const SizedBox(height: 24),
+
+                  // --- Syarat dan Ketentuan ---
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 24.0),
+                    child: RichText(
+                      textAlign: TextAlign.center,
+                      text: TextSpan(
+                        text: 'By signing up, you are agree to our ',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                        children: [
+                          TextSpan(
+                            text: 'Terms & Conditions',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        );
-                      },
-                      child: Text('Login'),
+                          const TextSpan(text: ' and '),
+                          TextSpan(
+                            text: 'Privacy Policy',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ],
-                ),
-              ],
+                  ),
+
+                  _isLoading
+                      ? const Center(child: CircularProgressIndicator())
+                      : ElevatedButton(
+                          onPressed: register,
+                          child: const Text('Create Account'),
+                        ),
+                  const SizedBox(height: 24),
+
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Text('Already have an Account?'),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Kembali ke Login
+                        },
+                        child: const Text('Sign in'),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
