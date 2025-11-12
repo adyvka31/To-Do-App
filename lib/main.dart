@@ -7,6 +7,7 @@ import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:camera/camera.dart';
+import 'package:provider/provider.dart';
 
 // Untuk Menginstall Firebase Ke Project
 void main() async {
@@ -21,7 +22,6 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   final CameraDescription camera;
-
   const MyApp({super.key, required this.camera});
 
   // This widget is the root of your application.
@@ -32,6 +32,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Flutter To-Do App',
       debugShowCheckedModeBanner: false,
+
       // Tema Untuk Elemen UI
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.black,
@@ -39,7 +40,6 @@ class MyApp extends StatelessWidget {
           seedColor: Colors.blue,
           brightness: Brightness.light,
         ),
-
         fontFamily: 'Poppins',
         textTheme: baseTextTheme.copyWith(
           headlineSmall: baseTextTheme.headlineSmall?.copyWith(
@@ -131,7 +131,6 @@ class MyApp extends StatelessWidget {
             return const HomeScreen();
           } else {
             return const LoginScreen();
-            // return CameraScreen(camera: camera);
           }
         },
       ),
