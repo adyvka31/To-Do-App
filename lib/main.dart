@@ -3,6 +3,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_todo_firebase/auth/login_screen.dart';
 import 'package:flutter_todo_firebase/screen/camera_screen.dart';
 import 'package:flutter_todo_firebase/screen/home_screen.dart';
+import 'package:get/get.dart';
 import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -28,7 +29,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final baseTextTheme = Theme.of(context).textTheme;
 
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'Flutter To-Do App',
       debugShowCheckedModeBanner: false,
 

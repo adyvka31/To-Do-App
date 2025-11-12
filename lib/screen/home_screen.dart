@@ -1,6 +1,8 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_todo_firebase/theme_controller.dart';
+import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -11,6 +13,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  var c = Get.put(ThemeController());
   final user = FirebaseAuth.instance.currentUser!;
   TextEditingController todoController = TextEditingController();
   TextEditingController editController = TextEditingController();
@@ -251,12 +254,14 @@ class _HomeScreenState extends State<HomeScreen> {
                     borderRadius: BorderRadius.circular(12),
                     color: Color(0xFFF8F9FB),
                   ),
-                  child: IconButton(
-                    onPressed: () {},
-                    icon: Icon(
-                      Icons.dark_mode_outlined,
-                      size: 25,
-                      color: Colors.black87,
+                  child: Obx(
+                    () => IconButton(
+                      onPressed: () {
+                        c.changeTheme();
+                      },
+                      icon: c.isTheme.value
+                          ? Icon(Icons.dark_mode_outlined)
+                          : Icon(Icons.light_mode_outlined),
                     ),
                   ),
                 ),
@@ -358,7 +363,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildSearchBar() {
     return Padding(
-      padding: const EdgeInsets.only(right: 20, left: 20, top: 20),
+      padding: const EdgeInsets.only(right: 20, left: 20, top: 24, bottom: 4),
       child: TextField(
         controller: searchController,
         style: const TextStyle(color: Colors.black87),
@@ -370,7 +375,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Icon(Icons.search, color: Colors.grey[600]),
           ),
           filled: true,
-          fillColor: Colors.grey[100],
+          fillColor: Color(0xFFF8F9FB),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(100),
             borderSide: BorderSide(color: Colors.grey[300]!),
