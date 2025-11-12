@@ -7,7 +7,6 @@ import 'firebase_options.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:camera/camera.dart';
-import 'package:provider/provider.dart';
 
 // Untuk Menginstall Firebase Ke Project
 void main() async {
@@ -35,7 +34,7 @@ class MyApp extends StatelessWidget {
 
       // Tema Untuk Elemen UI
       theme: ThemeData(
-        scaffoldBackgroundColor: Colors.black,
+        scaffoldBackgroundColor: Colors.white,
         colorScheme: ColorScheme.fromSeed(
           seedColor: Colors.blue,
           brightness: Brightness.light,
@@ -64,32 +63,32 @@ class MyApp extends StatelessWidget {
             horizontal: 20.0,
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
-            borderSide: BorderSide.none,
+            borderRadius: BorderRadius.circular(15),
+            borderSide: BorderSide(color: Colors.grey[300]!, width: 0.5),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: BorderRadius.circular(15),
             borderSide: BorderSide(
               color: Theme.of(context).colorScheme.primary,
               width: 2.0,
             ),
           ),
           errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: BorderRadius.circular(15),
             borderSide: BorderSide(
               color: Theme.of(context).colorScheme.error,
               width: 2.0,
             ),
           ),
           focusedErrorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: BorderRadius.circular(15),
             borderSide: BorderSide(
               color: Theme.of(context).colorScheme.error,
               width: 2.0,
             ),
           ),
           disabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12.0),
+            borderRadius: BorderRadius.circular(15),
             borderSide: BorderSide.none,
           ),
           hintStyle: TextStyle(color: Colors.grey.shade600),
